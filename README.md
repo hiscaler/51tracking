@@ -32,3 +32,11 @@ client.Services.Carrier.List()
 ```go
 client.Services.Carrier.Change("trackingNumber", "oldCarrierCode", "newCarrierCode")
 ```
+
+### Tracking
+
+- 添加物流单号
+
+```go
+client.Services.Tracking.Create()
+```
