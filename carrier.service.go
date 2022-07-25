@@ -52,12 +52,12 @@ func (s carrierService) List(lang string) (items []Carrier, err error) {
 }
 
 // Change 修改物流简码
-func (s carrierService) Change(trackingNumber, code, newCode string) error {
+func (s carrierService) Change(trackingNumber, oldCourierCode, newCourierCode string) error {
 	_, err := s.httpClient.R().
 		SetBody(map[string]string{
 			"tracking_number":  trackingNumber,
-			"courier_code":     code,
-			"new_courier_code": newCode,
+			"courier_code":     oldCourierCode,
+			"new_courier_code": newCourierCode,
 		}).
 		Put("/trackings/modifycourier")
 	return err
