@@ -13,6 +13,6 @@ type service struct {
 
 // API Services
 type services struct {
-	Carrier  carrierService
+	Courier  courierService
 	Tracking trackingService
 }

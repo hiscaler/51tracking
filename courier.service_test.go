@@ -5,7 +5,7 @@ import (
 )
 
 func TestCarrierService_List(t *testing.T) {
-	_, err := client.Services.Carrier.List("cn")
+	_, err := client.Services.Courier.List("cn")
 	if err != nil {
 		t.Error(err)
 	}

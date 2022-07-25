@@ -9,4 +9,7 @@ require (
 	gopkg.in/guregu/null.v4 v4.0.0
 )
 
-require golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+require (
+	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
+	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+)

@@ -105,7 +105,7 @@ func NewTracking51(appKey string) *Tracking51 {
 		httpClient: client.httpClient,
 	}
 	client.Services = services{
-		Carrier:  (carrierService)(xService),
+		Courier:  (courierService)(xService),
 		Tracking: (trackingService)(xService),
 	}
 	return client

@@ -24,13 +24,13 @@ client := NewTracking51(c)
 - 获取物流商列表
 
 ```go
-client.Services.Carrier.List()
+client.Services.Courier.List()
 ```
 
 - 修改包裹物流商
 
 ```go
-client.Services.Carrier.Change("trackingNumber", "oldCarrierCode", "newCarrierCode")
+client.Services.Courier.Change("trackingNumber", "oldCourierCode", "newCourierCode")
 ```
 
 ### Tracking
