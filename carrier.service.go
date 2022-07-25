@@ -8,6 +8,7 @@ import (
 
 type carrierService service
 
+// https://www.51tracking.com/v3/api-index?language=Golang#%E7%89%A9%E6%B5%81%E5%95%86%E5%88%97%E8%A1%A8
 type Carrier1 struct {
 	Name        string      `json:"courier_name"`
 	Code        string      `json:"courier_code"`
@@ -17,6 +18,7 @@ type Carrier1 struct {
 	URL         null.String `json:"courier_url"`
 	Logo        string      `json:"courier_logo"`
 }
+
 type Carrier struct {
 	Name        string      `json:"Name"`
 	Express     string      `json:"express"`
@@ -26,6 +28,7 @@ type Carrier struct {
 	Picture     string      `json:"picture"`
 }
 
+// List 物流商列表
 func (s carrierService) List(lang string) (items []Carrier, err error) {
 	if !inx.StringIn(lang, "cn", "en") {
 		lang = "cn"
@@ -46,4 +49,16 @@ func (s carrierService) List(lang string) (items []Carrier, err error) {
 		items = res.Data
 	}
 	return
+}
+
+// Change 修改物流简码
+func (s carrierService) Change(trackingNumber, code, newCode string) error {
+	_, err := s.httpClient.R().
+		SetBody(map[string]string{
+			"tracking_number":  trackingNumber,
+			"courier_code":     code,
+			"new_courier_code": newCode,
+		}).
+		Put("/trackings/modifycourier")
+	return err
 }
