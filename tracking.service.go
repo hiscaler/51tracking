@@ -2,6 +2,7 @@ package tracking51
 
 import (
 	"encoding/json"
+	"errors"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"regexp"
@@ -199,6 +200,65 @@ func (s trackingService) Delete(requests []DeleteTrackRequest) (success []Delete
 		Data struct {
 			Success []DeleteTrackResult
 			Error   []DeleteTrackResult
+		} `json:"data"`
+	}{}
+	if err = json.Unmarshal(resp.Body(), &res); err == nil {
+		success = res.Data.Success
+		error = res.Data.Error
+	}
+	return
+}
+
+// 停止更新
+
+type StopUpdateRequest trackingNumberCourierCode
+type StopUpdateRequests []StopUpdateRequest
+
+func (m StopUpdateRequests) Validate() error {
+	return validation.Validate(m,
+		validation.Required.Error("请求数据不能为空"),
+		validation.By(func(value interface{}) error {
+			items, ok := value.([]StopUpdateRequest)
+			if !ok {
+				return errors.New("无效的请求数据")
+			}
+			if len(items) > 40 {
+				return errors.New("请求数据不能超过 40 个")
+			}
+			for _, item := range items {
+				err := validation.ValidateStruct(&item,
+					validation.Field(&item.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
+					validation.Field(&item.CourierCode, validation.Required.Error("物流商简码不能为空")),
+				)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}),
+	)
+}
+
+type StopUpdateResultSuccess trackingNumberCourierCode
+type StopUpdateResultError trackingNumberCourierCode
+
+func (s trackingService) StopUpdate(requests StopUpdateRequests) (success []StopUpdateResultSuccess, error []StopUpdateResultError, err error) {
+	if err = requests.Validate(); err != nil {
+		return
+	}
+
+	resp, err := s.httpClient.R().
+		SetBody(requests).
+		Post("/notupdate")
+	if err != nil {
+		return
+	}
+
+	res := struct {
+		NormalResponse
+		Data struct {
+			Success []StopUpdateResultSuccess
+			Error   []StopUpdateResultError
 		} `json:"data"`
 	}{}
 	if err = json.Unmarshal(resp.Body(), &res); err == nil {

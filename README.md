@@ -58,6 +58,12 @@ client.Services.Tracking.All(params)
 client.Services.Tracking.Delete([]DeleteTrackRequest{})
 ```
 
+- 停止单号更新
+
+```go
+client.Services.Tracking.StopUpdate(StopUpdateRequests{})
+```
+
 - 手动更新
 
 ```go
