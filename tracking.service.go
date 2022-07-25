@@ -307,3 +307,49 @@ func (s trackingService) Refresh(requests []RefreshRequest) (success []RefreshRe
 	}
 	return
 }
+
+// 统计包裹状态
+
+type StatusStatisticRequest struct {
+	CourierCode     string `url:"courier_code,omitempty"`      // 	物流商对应的唯一简码
+	CreatedDateMin  int    `url:"created_date_min,omitempty"`  // 创建查询的起始时间，时间戳格式
+	CreatedDateMax  int    `url:"created_date_max,omitempty"`  // 创建查询的结束时间，时间戳格式
+	ShippingDateMin int    `url:"shipping_date_min,omitempty"` // 发货的起始时间，时间戳格式
+	ShippingDateMax int    `url:"shipping_date_max,omitempty"` // 发货的结束时间，时间戳格式
+}
+
+type StatusStatistic struct {
+	Pending     int `json:"pending"`
+	NotFound    int `json:"notfound"`
+	Transit     int `json:"transit"`
+	Pickup      int `json:"pickup"`
+	Delivered   int `json:"delivered"`
+	Expired     int `json:"expired"`
+	Undelivered int `json:"undelivered"`
+	Exception   int `json:"exception"`
+}
+
+func (m StatusStatisticRequest) Validate() error {
+	return nil
+}
+
+func (s trackingService) StatusStatistic(req StatusStatisticRequest) (stat StatusStatistic, err error) {
+	if err = req.Validate(); err != nil {
+		return
+	}
+	resp, err := s.httpClient.R().
+		SetBody(req).
+		Get("/status")
+	if err != nil {
+		return
+	}
+
+	res := struct {
+		NormalResponse
+		Data StatusStatistic `json:"data"`
+	}{}
+	if err = json.Unmarshal(resp.Body(), &res); err == nil {
+		stat = res.Data
+	}
+	return
+}

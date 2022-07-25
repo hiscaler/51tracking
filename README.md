@@ -69,3 +69,14 @@ client.Services.Tracking.StopUpdate(StopUpdateRequests{})
 ```go
 client.Services.Tracking.Refresh([]RefreshRequest{})
 ```
+- 手动更新
+
+```go
+client.Services.Tracking.Refresh([]RefreshRequest{})
+```
+
+- 统计包裹状态
+
+```go
+client.Services.Tracking.StatusStatistic(StatusStatisticRequest{})
+```

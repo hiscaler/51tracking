@@ -12,3 +12,11 @@ func TestTrackingService_All(t *testing.T) {
 	}
 	fmt.Println(items)
 }
+
+func TestTrackingService_StatusStatistic(t *testing.T) {
+	stat, err := client.Services.Tracking.StatusStatistic(StatusStatisticRequest{})
+	if err != nil {
+		t.Error(err)
+	}
+	t.Logf("%#v", stat)
+}
