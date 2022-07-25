@@ -61,6 +61,12 @@ func (s trackingService) Create(req CreateTrackingRequest) (res CreateResult, er
 		return
 	}
 
-	err = json.Unmarshal(resp.Body(), &res)
+	r := struct {
+		NormalResponse
+		Data CreateResult `json:"data"`
+	}{}
+	if err = json.Unmarshal(resp.Body(), &r); err == nil {
+		res = r.Data
+	}
 	return
 }

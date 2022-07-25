@@ -64,7 +64,7 @@ func NewTracking51(appKey string) *Tracking51 {
 			}{}
 			if err = json.Unmarshal(response.Body(), &r); err == nil {
 				if r.Code != OK {
-
+					err = ErrorWrap(r.Code, r.Message)
 				}
 			} else {
 				logger.Printf("JSON Unmarshal error: %s", err.Error())
