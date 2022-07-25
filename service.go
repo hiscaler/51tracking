@@ -14,6 +14,7 @@ type service struct {
 
 // API Services
 type services struct {
+	Account  accountService
 	Courier  courierService
 	Tracking trackingService
 }

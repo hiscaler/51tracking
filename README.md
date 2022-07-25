@@ -23,6 +23,14 @@ client := NewTracking51(config.Config{
 
 ## 服务
 
+### 帐号
+
+- 帐号情况
+
+```go
+client.Services.Account.Profile()
+```
+
 ### 物流商
 
 - 获取物流商列表
@@ -64,11 +72,6 @@ client.Services.Tracking.Delete([]DeleteTrackRequest{})
 client.Services.Tracking.StopUpdate(StopUpdateRequests{})
 ```
 
-- 手动更新
-
-```go
-client.Services.Tracking.Refresh([]RefreshRequest{})
-```
 - 手动更新
 
 ```go

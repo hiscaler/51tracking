@@ -112,6 +112,7 @@ func NewTracking51(config config.Config) *Tracking51 {
 		httpClient: client.httpClient,
 	}
 	client.Services = services{
+		Account:  (accountService)(xService),
 		Courier:  (courierService)(xService),
 		Tracking: (trackingService)(xService),
 	}
