@@ -31,7 +31,7 @@ func (s courierService) List(lang string) (items []Courier, err error) {
 	}{}
 	resp, err := s.httpClient.R().
 		SetQueryParam("lang", lang).
-		Get("/trackings/courier")
+		Get("/courier")
 	if err != nil {
 		return
 	}
@@ -50,6 +50,6 @@ func (s courierService) Change(trackingNumber, oldCourierCode, newCourierCode st
 			"courier_code":     oldCourierCode,
 			"new_courier_code": newCourierCode,
 		}).
-		Put("/trackings/modifycourier")
+		Put("/modifycourier")
 	return err
 }

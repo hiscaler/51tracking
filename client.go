@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	config "github.com/hiscaler/51tracking-go/config"
 	"github.com/hiscaler/gox/bytex"
 	"log"
 	"net/http"
@@ -32,25 +33,29 @@ const (
 )
 
 type Tracking51 struct {
-	config     *config       // 配置
-	httpClient *resty.Client // Resty Client
-	Services   services      // API Services
+	config     *config.Config // 配置
+	httpClient *resty.Client  // Resty Client
+	Services   services       // API Services
 }
 
-func NewTracking51(appKey string) *Tracking51 {
+func NewTracking51(config config.Config) *Tracking51 {
 	logger := log.New(os.Stdout, "[ 51Tracking ] ", log.LstdFlags|log.Llongfile)
-	cfg := &config{debug: false, version: "v3"}
 	client := &Tracking51{
-		config: cfg,
+		config: &config,
+	}
+
+	baseURL := "https://api.51tracking.com/v3/trackings"
+	if config.Sandbox {
+		baseURL += "/sandbox"
 	}
 	httpClient := resty.New().
-		SetDebug(cfg.debug).
-		SetBaseURL("https://api.51tracking.com/v3").
+		SetDebug(config.Debug).
+		SetBaseURL(baseURL).
 		SetHeaders(map[string]string{
 			"Content-Type":     "application/json",
 			"Accept":           "application/json",
 			"User-Agent":       userAgent,
-			"Tracking-Api-Key": appKey,
+			"Tracking-Api-Key": config.AppKey,
 		}).
 		SetTimeout(10 * time.Second).
 		OnAfterResponse(func(client *resty.Client, response *resty.Response) (err error) {
@@ -100,7 +105,7 @@ func NewTracking51(appKey string) *Tracking51 {
 
 	client.httpClient = httpClient
 	xService := service{
-		config:     cfg,
+		config:     &config,
 		logger:     logger,
 		httpClient: client.httpClient,
 	}
@@ -113,7 +118,7 @@ func NewTracking51(appKey string) *Tracking51 {
 
 // SetDebug 设置是否开启调试模式
 func (t *Tracking51) SetDebug(v bool) *Tracking51 {
-	t.config.debug = v
+	t.config.Debug = v
 	t.httpClient.SetDebug(v)
 	return t
 }

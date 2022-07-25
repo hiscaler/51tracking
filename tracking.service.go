@@ -56,7 +56,7 @@ func (s trackingService) Create(req CreateTrackingRequest) (res CreateResult, er
 
 	resp, err := s.httpClient.R().
 		SetBody(req).
-		Put("/trackings/create")
+		Put("/create")
 	if err != nil {
 		return
 	}
