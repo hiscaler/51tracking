@@ -14,7 +14,11 @@ go get github.com/hiscaler/51tracking-go
 ## 使用
 
 ```
-client := NewTracking51(c)
+client := NewTracking51(config.Config{
+    Debug:   true,
+    Sandbox: true,
+    AppKey:  "xxx",
+})
 ```
 
 ## 服务
