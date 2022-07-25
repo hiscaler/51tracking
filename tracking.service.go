@@ -130,19 +130,19 @@ type TrackInfo struct {
 }
 
 type TracksQueryParams struct {
-	TrackingNumbers string `json:"tracking_numbers"`  // 查询单号，每次不得超过40个，单号间以逗号分隔
-	OrderNumbers    string `json:"order_numbers"`     // 订单号，每次查询不得超过40个，订单号间以逗号分隔
-	DeliveryStatus  string `json:"delivery_status"`   // 状态
-	ArchivedStatus  string `json:"archived_status"`   // 指定该单号是否被归档
-	ItemsAmount     int    `json:"items_amount"`      // 每页展示的单号个数
-	PagesAmount     int    `json:"pages_amount"`      // 返回结果的页数
-	CreatedDateMin  int    `json:"created_date_min"`  // 创建查询的起始时间，时间戳格式
-	CreatedDateMax  int    `json:"created_date_max"`  // 创建查询的结束时间，时间戳格式
-	ShippingDateMin int    `json:"shipping_date_min"` // 发货的起始时间，时间戳格式
-	ShippingDateMax int    `json:"shipping_date_max"` // 发货的结束时间，时间戳格式
-	UpdatedDateMin  int    `json:"updated_date_min"`  // 查询更新的起始时间，时间戳格式
-	UpdatedDateMax  int    `json:"updated_date_max"`  // 查询更新的结束时间，时间戳格式
-	Lang            string `json:"lang"`              // 查询结果的语言（例子：cn, en），若未指定该参数，结果会以英文或中文呈现。 注意：只有物流商支持多语言查询结果时，该指定才会生效
+	TrackingNumbers string `url:"tracking_numbers,omitempty"`  // 查询单号，每次不得超过40个，单号间以逗号分隔
+	OrderNumbers    string `url:"order_numbers,omitempty"`     // 订单号，每次查询不得超过40个，订单号间以逗号分隔
+	DeliveryStatus  string `url:"delivery_status,omitempty"`   // 状态
+	ArchivedStatus  string `url:"archived_status,omitempty"`   // 指定该单号是否被归档
+	ItemsAmount     int    `url:"items_amount,omitempty"`      // 每页展示的单号个数
+	PagesAmount     int    `url:"pages_amount,omitempty"`      // 返回结果的页数
+	CreatedDateMin  int    `url:"created_date_min,omitempty"`  // 创建查询的起始时间，时间戳格式
+	CreatedDateMax  int    `url:"created_date_max,omitempty"`  // 创建查询的结束时间，时间戳格式
+	ShippingDateMin int    `url:"shipping_date_min,omitempty"` // 发货的起始时间，时间戳格式
+	ShippingDateMax int    `url:"shipping_date_max,omitempty"` // 发货的结束时间，时间戳格式
+	UpdatedDateMin  int    `url:"updated_date_min,omitempty"`  // 查询更新的起始时间，时间戳格式
+	UpdatedDateMax  int    `url:"updated_date_max,omitempty"`  // 查询更新的结束时间，时间戳格式
+	Lang            string `url:"lang,omitempty"`              // 查询结果的语言（例子：cn, en），若未指定该参数，结果会以英文或中文呈现。 注意：只有物流商支持多语言查询结果时，该指定才会生效
 }
 
 func (m TracksQueryParams) Validate() error {
@@ -289,7 +289,7 @@ type RefreshResultError struct {
 func (s trackingService) Refresh(requests []RefreshRequest) (success []RefreshResultSuccess, error []RefreshResultError, err error) {
 	resp, err := s.httpClient.R().
 		SetBody(requests).
-		Delete("/manualupdate")
+		Post("/manualupdate")
 	if err != nil {
 		return
 	}
