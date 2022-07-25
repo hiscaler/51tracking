@@ -353,3 +353,58 @@ func (s trackingService) StatusStatistic(req StatusStatisticRequest) (stat Statu
 	}
 	return
 }
+
+// 时效
+
+type TransitTime struct {
+	CourierCode         string  `json:"courier_code"`          // 物流商对应的唯一简码
+	OriginalCode        string  `json:"original_code"`         // 发件国二字简码
+	DestinationCode     string  `json:"destination_code"`      // 目的国二字简码
+	Total               int     `json:"total"`                 // 未签收的总单号数量
+	Delivered           int     `json:"delivered"`             // 已签收的总单号数量
+	Range1To7           float64 `json:"range_1_7"`             // 送达时间为0～7天的单号的占比
+	Range8To15          float64 `json:"range_8_15"`            // 送达时间为7～15天的单号的占比
+	Range16To30         float64 `json:"range_16_30"`           // 送达时间为16～30天的单号的占比
+	Range31To60         float64 `json:"range_31_60"`           // 送达时间为31～60天的单号的占比
+	Range60Up           float64 `json:"range_60_up"`           // 送达时间为31～60天的单号的占比
+	AverageDeliveryTime float64 `json:"average_delivery_time"` // 平均送达时间（单位：天）
+}
+
+type TransitTimeRequest struct {
+	CourierCode     string `json:"courier_code"`      // 物流商对应的唯一简码
+	OriginalCode    string `json:"original_code"`     // 发件国二字简码
+	DestinationCode string `json:"destination_code "` // 目的国的二字简码
+}
+
+func (m TransitTimeRequest) Validate() error {
+	return validation.ValidateStruct(&m,
+		validation.Field(&m.CourierCode, validation.Required.Error(" 物流商简码不能为空")),
+		validation.Field(&m.OriginalCode, validation.Required.Error("发件国二字简码不能为空")),
+		validation.Field(&m.DestinationCode, validation.Required.Error("目的国二字简码不能为空")),
+	)
+}
+
+func (s trackingService) TransitTime(req TransitTimeRequest) (success []TransitTime, error []TransitTime, err error) {
+	if err = req.Validate(); err != nil {
+		return
+	}
+	resp, err := s.httpClient.R().
+		SetBody(req).
+		Get("/transittime")
+	if err != nil {
+		return
+	}
+
+	res := struct {
+		NormalResponse
+		Data struct {
+			Success []TransitTime `json:"success"`
+			Error   []TransitTime `json:"error"`
+		} `json:"data"`
+	}{}
+	if err = json.Unmarshal(resp.Body(), &res); err == nil {
+		success = res.Data.Success
+		error = res.Data.Error
+	}
+	return
+}

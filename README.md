@@ -80,3 +80,9 @@ client.Services.Tracking.Refresh([]RefreshRequest{})
 ```go
 client.Services.Tracking.StatusStatistic(StatusStatisticRequest{})
 ```
+
+- 时效
+
+```go
+client.Services.Tracking.TransitTime(TransitTimeRequest{})
+```
