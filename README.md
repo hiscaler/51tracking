@@ -51,3 +51,9 @@ client.Services.Tracking.Create()
 params := TracksQueryParams{}
 client.Services.Tracking.All(params)
 ```
+
+- 删除查询单号
+
+```go
+client.Services.Tracking.Delete([]DeleteTrackRequest{})
+```

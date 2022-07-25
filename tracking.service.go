@@ -170,3 +170,38 @@ func (s trackingService) All(params TracksQueryParams) (items []Track, isLastPag
 	}
 	return
 }
+
+// 删除查询单号
+
+type DeleteTrackRequest struct {
+	TrackingNumber string `json:"tracking_number"` // 包裹物流单号
+	CourierCode    string `json:"courier_code"`    // 物流商对应的唯一简码
+}
+
+type DeleteTrackResult DeleteTrackRequest
+
+func (m DeleteTrackRequest) Validate() error {
+	return nil
+}
+
+func (s trackingService) Delete(items []DeleteTrackRequest) (success []DeleteTrackResult, error []DeleteTrackResult, err error) {
+	resp, err := s.httpClient.R().
+		SetBody(items).
+		Delete("/delete")
+	if err != nil {
+		return
+	}
+
+	res := struct {
+		NormalResponse
+		Data struct {
+			Success []DeleteTrackResult
+			Error   []DeleteTrackResult
+		} `json:"data"`
+	}{}
+	if err = json.Unmarshal(resp.Body(), &res); err == nil {
+		success = res.Data.Success
+		error = res.Data.Error
+	}
+	return
+}
