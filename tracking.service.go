@@ -282,7 +282,7 @@ type RefreshResultSuccess struct {
 
 type RefreshResultError struct {
 	trackingNumberCourierCode
-	ErrorCode    string `json:"errorCode"`
+	ErrorCode    int    `json:"errorCode"`
 	ErrorMessage string `json:"errorMessage"`
 }
 
