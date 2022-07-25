@@ -207,3 +207,43 @@ func (s trackingService) Delete(requests []DeleteTrackRequest) (success []Delete
 	}
 	return
 }
+
+// 手动更新
+
+type RefreshRequest trackingNumberCourierCode
+
+func (m RefreshRequest) Validate() error {
+	return nil
+}
+
+type RefreshResultSuccess struct {
+	trackingNumberCourierCode
+}
+
+type RefreshResultError struct {
+	trackingNumberCourierCode
+	ErrorCode    string `json:"errorCode"`
+	ErrorMessage string `json:"errorMessage"`
+}
+
+func (s trackingService) Refresh(requests []RefreshRequest) (success []RefreshResultSuccess, error []RefreshResultError, err error) {
+	resp, err := s.httpClient.R().
+		SetBody(requests).
+		Delete("/manualupdate")
+	if err != nil {
+		return
+	}
+
+	res := struct {
+		NormalResponse
+		Data struct {
+			Success []RefreshResultSuccess
+			Error   []RefreshResultError
+		} `json:"data"`
+	}{}
+	if err = json.Unmarshal(resp.Body(), &res); err == nil {
+		success = res.Data.Success
+		error = res.Data.Error
+	}
+	return
+}

@@ -57,3 +57,9 @@ client.Services.Tracking.All(params)
 ```go
 client.Services.Tracking.Delete([]DeleteTrackRequest{})
 ```
+
+- 手动更新
+
+```go
+client.Services.Tracking.Refresh([]RefreshRequest{})
+```
