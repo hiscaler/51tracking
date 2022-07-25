@@ -40,3 +40,10 @@ client.Services.Courier.Change("trackingNumber", "oldCourierCode", "newCourierCo
 ```go
 client.Services.Tracking.Create()
 ```
+
+- 获取查询结果
+
+```go
+params := TracksQueryParams{}
+client.Services.Tracking.All(params)
+```

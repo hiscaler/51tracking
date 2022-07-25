@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	config "github.com/hiscaler/51tracking-go/config"
+	"github.com/google/go-querystring/query"
+	"github.com/hiscaler/51tracking-go/config"
 	"github.com/hiscaler/gox/bytex"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
@@ -140,4 +142,10 @@ func ErrorWrap(code int, message string) error {
 		message = "接口请求超请求次数限额"
 	}
 	return fmt.Errorf("%d: %s", code, message)
+}
+
+// change to url.values
+func toValues(i interface{}) (values url.Values) {
+	values, _ = query.Values(i)
+	return
 }
