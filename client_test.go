@@ -11,7 +11,7 @@ import (
 var client *Tracking51
 
 func TestMain(m *testing.M) {
-	b, err := os.ReadFile("./config.json")
+	b, err := os.ReadFile("./config/config.json")
 	if err != nil {
 		panic(fmt.Sprintf("Read config error: %s", err.Error()))
 	}

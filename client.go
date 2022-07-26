@@ -119,12 +119,16 @@ func NewTracking51(config config.Config) *Tracking51 {
 		}
 		httpClient.OnBeforeRequest(func(c *resty.Client, request *resty.Request) error {
 			now := time.Now()
-			logger.Printf(request.URL)
-			logger.Printf("client LatestRequestTime: %s, Now: %s", client.latestRequestTime.Format("2006-01-02 15:04:05.000"), now.Format("2006-01-02 15:04:05.000"))
+			if config.Debug {
+				logger.Printf("URL: %s", request.URL)
+				logger.Printf("Client latest request time: %s, Current request time: %s", client.latestRequestTime.Format("2006-01-02 15:04:05.000"), now.Format("2006-01-02 15:04:05.000"))
+			}
 			d := now.Sub(client.latestRequestTime)
 			if d.Milliseconds() < config.IntervalTime {
 				d = time.Duration(config.IntervalTime-d.Milliseconds()) * time.Millisecond
-				logger.Printf("Sleep %f", d.Seconds())
+				if config.Debug {
+					logger.Printf("Sleep %f milliseconds", d.Milliseconds())
+				}
 				time.Sleep(d)
 			}
 			client.latestRequestTime = now
