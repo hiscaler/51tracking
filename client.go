@@ -16,17 +16,23 @@ import (
 
 // https://www.51tracking.com/v3/api-index?language=Golang#%E5%93%8D%E5%BA%94
 const (
-	OK                                  = 200 // 无错误
+	Success                             = 200 // 无错误
 	PaymentRequiredError                = 203 // API 服务只提供给付费账户，请付费购买单号以解锁 API 服务
-	NoContentError                      = 204 // 请求成功，但未获取到数据，可能是该单号、所查询目标数据不存在
+	NoContent                           = 204 // 请求成功，但未获取到数据，可能是该单号、所查询目标数据不存在
 	BadRequestError                     = 400 // 请求类型错误
 	UnauthorizedError                   = 401 // 授权失败或没有权限，请检查并确保你 API Key 正确无误
-	NotFoundError                       = 404 // 该页面不存在
+	NotFoundError                       = 404 // 请求的资源不存在
 	TimeOutError                        = 408 // 请求超时
 	RequestParametersTooLongError       = 411 // 请求参数长度超过限制
 	RequestParametersFormatError        = 412 // 请求参数格式不合要求
 	RequestParametersExceededLimitError = 413 // 请求参数数量超过限制
-	TooManyRequestsError                = 429 // API请求频率次限制，请稍后再试
+	LostRequestParametersOrParseError   = 417 // 缺少请求参数或者请求参数无法解析
+	ParametersInvalidError              = 421 // 部分必填参数为空
+	CourierCodeInvalidError             = 422 // 物流商简码无法识别或者不支持该物流商
+	TrackingNumberIsExistsError         = 423 // 跟踪单号已存在，无需再次创建
+	TrackingNumberIsNotExistsError      = 424 // 跟踪单号不存在
+	TooManyRequestsError                = 429 // API 请求频率次数限制，请稍后再试
+	InternalError                       = 511 // 系统错误
 )
 
 const (
@@ -35,15 +41,17 @@ const (
 )
 
 type Tracking51 struct {
-	config     *config.Config // 配置
-	httpClient *resty.Client  // Resty Client
-	Services   services       // API Services
+	latestRequestTime time.Time
+	config            *config.Config // 配置
+	httpClient        *resty.Client  // Resty Client
+	Services          services       // API Services
 }
 
 func NewTracking51(config config.Config) *Tracking51 {
 	logger := log.New(os.Stdout, "[ 51Tracking ] ", log.LstdFlags|log.Llongfile)
 	client := &Tracking51{
-		config: &config,
+		config:            &config,
+		latestRequestTime: time.Now(),
 	}
 
 	baseURL := "https://api.51tracking.com/v3/trackings"
@@ -70,7 +78,7 @@ func NewTracking51(config config.Config) *Tracking51 {
 				Message string `json:"message"`
 			}{}
 			if err = json.Unmarshal(response.Body(), &r); err == nil {
-				if r.Code != OK {
+				if r.Code != Success {
 					err = ErrorWrap(r.Code, r.Message)
 				}
 			} else {
@@ -83,7 +91,7 @@ func NewTracking51(config config.Config) *Tracking51 {
 			return
 		}).
 		SetRetryCount(2).
-		SetRetryWaitTime(5 * time.Second).
+		SetRetryWaitTime(1 * time.Second).
 		SetRetryMaxWaitTime(10 * time.Second).
 		AddRetryCondition(func(response *resty.Response, err error) bool {
 			if response == nil {
@@ -105,6 +113,24 @@ func NewTracking51(config config.Config) *Tracking51 {
 			return retry
 		})
 
+	if config.IntervalTime > 0 {
+		if config.IntervalTime < 1000 {
+			config.IntervalTime = 1000
+		}
+		httpClient.OnBeforeRequest(func(c *resty.Client, request *resty.Request) error {
+			now := time.Now()
+			logger.Printf(request.URL)
+			logger.Printf("client LatestRequestTime: %s, Now: %s", client.latestRequestTime.Format("2006-01-02 15:04:05.000"), now.Format("2006-01-02 15:04:05.000"))
+			d := now.Sub(client.latestRequestTime)
+			if d.Milliseconds() < config.IntervalTime {
+				d = time.Duration(config.IntervalTime-d.Milliseconds()) * time.Millisecond
+				logger.Printf("Sleep %f", d.Seconds())
+				time.Sleep(d)
+			}
+			client.latestRequestTime = now
+			return nil
+		})
+	}
 	client.httpClient = httpClient
 	xService := service{
 		config:     &config,
@@ -134,13 +160,41 @@ type NormalResponse struct {
 
 // ErrorWrap 错误包装
 func ErrorWrap(code int, message string) error {
-	if code == OK {
+	if code == Success || code == NoContent {
 		return nil
 	}
 
 	switch code {
+	case PaymentRequiredError:
+		message = "API 服务只提供给付费账户，请付费购买单号以解锁 API 服务"
+	case BadRequestError:
+		message = " 请求类型错误"
+	case UnauthorizedError:
+		message = "授权失败或没有权限，请检查并确保你 API Key 正确无误"
+	case NotFoundError:
+		message = "请求的资源不存在"
+	case TimeOutError:
+		message = "请求超时"
+	case RequestParametersTooLongError:
+		message = "请求参数长度超过限制"
+	case RequestParametersFormatError:
+		message = "请求参数格式不合要求"
+	case RequestParametersExceededLimitError:
+		message = "请求参数数量超过限制"
+	case LostRequestParametersOrParseError:
+		message = "缺少请求参数或者请求参数无法解析"
+	case ParametersInvalidError:
+		message = "部分必填参数为空"
+	case CourierCodeInvalidError:
+		message = "物流商简码无法识别或者不支持该物流商"
+	case TrackingNumberIsExistsError:
+		message = "跟踪单号已存在，无需再次创建"
+	case TrackingNumberIsNotExistsError:
+		message = "跟踪单号不存在"
 	case TooManyRequestsError:
-		message = "接口请求超请求次数限额"
+		message = "API 请求频率次数限制，请稍后再试"
+	case InternalError:
+		message = "系统错误"
 	}
 	return fmt.Errorf("%d: %s", code, message)
 }

@@ -1,4 +1,7 @@
 {
   "debug": true,
-  "appKey": ""
+  "sandbox": true,
+  "version": "v3",
+  "appKey": "",
+  "intervalTime": 1500
 }
