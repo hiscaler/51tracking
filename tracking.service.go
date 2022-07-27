@@ -341,14 +341,15 @@ type StatusStatisticRequest struct {
 }
 
 type StatusStatistic struct {
-	Pending     int `json:"pending"`
-	NotFound    int `json:"notfound"`
-	Transit     int `json:"transit"`
-	Pickup      int `json:"pickup"`
-	Delivered   int `json:"delivered"`
-	Expired     int `json:"expired"`
-	Undelivered int `json:"undelivered"`
-	Exception   int `json:"exception"`
+	Pending      int `json:"pending"`      // 查询中：新增包裹正在查询中，请等待
+	NotFound     int `json:"notfound"`     // 查询不到：包裹信息目前查询不到
+	Transit      int `json:"transit"`      // 运输途中：物流商已揽件，包裹正被发往目的地
+	Pickup       int `json:"pickup"`       // 到达待取：包裹正在派送中，或到达当地收发点
+	Delivered    int `json:"delivered"`    // 成功签收：包裹已被成功投递
+	Expired      int `json:"expired"`      // 运输过久：包裹在很长时间内都未投递成功。快递包裹超过30天、邮政包裹超过60天未投递成功，该查询会被识别为此状态
+	Undelivered  int `json:"undelivered"`  // 投递失败：快递员投递失败（通常会留有通知并再次尝试投递）
+	Exception    int `json:"exception"`    // 可能异常：包裹退回、包裹丢失、清关失败等异常情况
+	InfoReceived int `json:"infoReceived"` // 待上网：包裹正在等待被揽件
 }
 
 func (m StatusStatisticRequest) Validate() error {
@@ -398,15 +399,32 @@ type TransitTimeRequest struct {
 	DestinationCode string `json:"destination_code "` // 目的国的二字简码
 }
 
-func (m TransitTimeRequest) Validate() error {
-	return validation.ValidateStruct(&m,
-		validation.Field(&m.CourierCode, validation.Required.Error("物流商简码不能为空")),
-		validation.Field(&m.OriginalCode, validation.Required.Error("发件国二字简码不能为空")),
-		validation.Field(&m.DestinationCode, validation.Required.Error("目的国二字简码不能为空")),
+type TransitTimeRequests []TransitTimeRequest
+
+func (m TransitTimeRequests) Validate() error {
+	return validation.Validate(m,
+		validation.Required.Error("请求数据不能为空"),
+		validation.By(func(value interface{}) error {
+			items, ok := value.([]TransitTimeRequest)
+			if !ok {
+				return errors.New("无效的请求数据")
+			}
+			for _, item := range items {
+				err := validation.ValidateStruct(&m,
+					validation.Field(&item.CourierCode, validation.Required.Error("物流商简码不能为空")),
+					validation.Field(&item.OriginalCode, validation.Required.Error("发件国二字简码不能为空")),
+					validation.Field(&item.DestinationCode, validation.Required.Error("目的国二字简码不能为空")),
+				)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}),
 	)
 }
 
-func (s trackingService) TransitTime(req TransitTimeRequest) (success []TransitTime, error []TransitTime, err error) {
+func (s trackingService) TransitTime(req TransitTimeRequests) (success []TransitTime, error []TransitTime, err error) {
 	if err = req.Validate(); err != nil {
 		return
 	}
