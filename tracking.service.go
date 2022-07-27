@@ -11,8 +11,8 @@ import (
 type trackingService service
 
 type CreateTrackingRequest struct {
-	TrackingNumber          string `json:"tracking_number"`                     //	包裹物流单号
-	CourierCode             string `json:"courier_code"`                        //	物流商对应的唯一简码
+	TrackingNumber          string `json:"tracking_number"`                     // 包裹物流单号
+	CourierCode             string `json:"courier_code"`                        // 物流商对应的唯一简码
 	OrderNumber             string `json:"order_number,omitempty"`              // 包裹的订单号，由商家/平台所产生的订单编号
 	Title                   string `json:"title,omitempty"`                     // 包裹名称
 	DestinationCode         string `json:"destination_code,omitempty"`          // 目的国的二字简码
@@ -40,9 +40,9 @@ func (m CreateTrackingRequest) Validate() error {
 }
 
 type Result struct {
-	TrackingNumber string `json:"tracking_number"` //	包裹物流单号
-	CourierCode    string `json:"courier_code"`    //	物流商对应的唯一简码
-	OrderNumber    string `json:"order_number"`    //	包裹的订单号，由商家/平台所产生的订单编号
+	TrackingNumber string `json:"tracking_number"` // 包裹物流单号
+	CourierCode    string `json:"courier_code"`    // 物流商对应的唯一简码
+	OrderNumber    string `json:"order_number"`    // 包裹的订单号，由商家/平台所产生的订单编号
 }
 
 type CreateResult struct {
@@ -242,14 +242,12 @@ func (m StopUpdateRequests) Validate() error {
 type StopUpdateResultSuccess trackingNumberCourierCode
 type StopUpdateResultError trackingNumberCourierCode
 
-func (s trackingService) StopUpdate(requests StopUpdateRequests) (success []StopUpdateResultSuccess, error []StopUpdateResultError, err error) {
-	if err = requests.Validate(); err != nil {
+func (s trackingService) StopUpdate(req StopUpdateRequests) (success []StopUpdateResultSuccess, error []StopUpdateResultError, err error) {
+	if err = req.Validate(); err != nil {
 		return
 	}
 
-	resp, err := s.httpClient.R().
-		SetBody(requests).
-		Post("/notupdate")
+	resp, err := s.httpClient.R().SetBody(req).Post("/notupdate")
 	if err != nil {
 		return
 	}
@@ -271,9 +269,31 @@ func (s trackingService) StopUpdate(requests StopUpdateRequests) (success []Stop
 // 手动更新
 
 type RefreshRequest trackingNumberCourierCode
+type RefreshRequests []RefreshRequest
 
-func (m RefreshRequest) Validate() error {
-	return nil
+func (m RefreshRequests) Validate() error {
+	return validation.Validate(m,
+		validation.Required.Error("请求数据不能为空"),
+		validation.By(func(value interface{}) error {
+			items, ok := value.([]RefreshRequest)
+			if !ok {
+				return errors.New("无效的请求数据")
+			}
+			if len(items) > 40 {
+				return errors.New("请求数据不能超过 40 个")
+			}
+			for _, item := range items {
+				err := validation.ValidateStruct(&item,
+					validation.Field(&item.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
+					validation.Field(&item.CourierCode, validation.Required.Error("物流商简码不能为空")),
+				)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}),
+	)
 }
 
 type RefreshResultSuccess struct {
@@ -286,10 +306,12 @@ type RefreshResultError struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
-func (s trackingService) Refresh(requests []RefreshRequest) (success []RefreshResultSuccess, error []RefreshResultError, err error) {
-	resp, err := s.httpClient.R().
-		SetBody(requests).
-		Post("/manualupdate")
+func (s trackingService) Refresh(req RefreshRequests) (success []RefreshResultSuccess, error []RefreshResultError, err error) {
+	if err := req.Validate(); err != nil {
+		return
+	}
+
+	resp, err := s.httpClient.R().SetBody(req).Post("/manualupdate")
 	if err != nil {
 		return
 	}
