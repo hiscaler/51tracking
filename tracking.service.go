@@ -193,6 +193,12 @@ func (s trackingService) Query(params TracksQueryParams) (items []Track, isLastP
 		return
 	}
 
+	if params.PagesAmount <= 0 {
+		params.PagesAmount = 1
+	}
+	if params.ItemsAmount <= 0 {
+		params.ItemsAmount = 100
+	}
 	resp, err := s.httpClient.R().
 		SetQueryParamsFromValues(toValues(params)).
 		Get("/get")
