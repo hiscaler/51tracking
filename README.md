@@ -5,6 +5,23 @@
 
 https://www.51tracking.com/v3/api-index?language=Golang#api-version
 
+## 数据更新频率
+
+**快递更新正常时间是 4~6 个小时，邮政更新是 6~8 个小时**
+
+- 添加 30 天内未签收的属于正常更新频次也就是下限是 4 小时上限是 6 小时；
+- 30~45 天仍未签收就会降低更新频率至下限 6 小时上限 8 小时；
+- 45~60 天仍未签收更新频率变为下限 12 小时上限 14 小时；
+- 60~80 天仍未签收更新频率变为下限 24 小时上限 26 小时；
+- 超过 80 天仍未签收将停止更新。
+
+## 手动更新条件
+
+1. 查询不到超过 15 天，已经停止更新了的单号；
+2. 已经签收，并且已经停止更新了的单号；
+3. 添加时间超过 30 天，已经停止更新的单号；
+4. 其他条件暂时无法通过该接口更新。
+
 ## 安装
 
 ```go
@@ -64,6 +81,14 @@ client.Services.Courier.Change("trackingNumber", "oldCourierCode", "newCourierCo
 
 ```go
 client.Services.Tracking.Create()
+```
+
+### Tracking
+
+- 修改单号信息
+
+```go
+client.Services.Tracking.Update()
 ```
 
 - 获取查询结果

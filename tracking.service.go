@@ -41,35 +41,61 @@ func (m CreateTrackRequest) Validate() error {
 	)
 }
 
-type Result struct {
+type CreateResult struct {
 	TrackingNumber string `json:"tracking_number"` // 包裹物流单号
 	CourierCode    string `json:"courier_code"`    // 物流商对应的唯一简码
 	OrderNumber    string `json:"order_number"`    // 包裹的订单号，由商家/平台所产生的订单编号
 }
 
-type CreateResult struct {
-	Success []Result `json:"success"`
-	Error   []Result `json:"error"`
-}
-
-func (s trackingService) Create(req CreateTrackRequest) (res CreateResult, err error) {
+func (s trackingService) Create(req CreateTrackRequest) (success []CreateResult, error []CreateResult, err error) {
 	if err = req.Validate(); err != nil {
 		return
 	}
 
-	resp, err := s.httpClient.R().
-		SetBody(req).
-		Put("/create")
+	resp, err := s.httpClient.R().SetBody(req).Post("/create")
 	if err != nil {
 		return
 	}
 
 	r := struct {
 		NormalResponse
-		Data CreateResult `json:"data"`
+		Data struct {
+			Success []CreateResult `json:"success"`
+			Error   []CreateResult `json:"error"`
+		} `json:"data"`
 	}{}
 	if err = json.Unmarshal(resp.Body(), &r); err == nil {
-		res = r.Data
+		success = r.Data.Success
+		error = r.Data.Error
+	}
+	return
+}
+
+// 修改单号信息
+
+type UpdateTrackRequest = CreateTrackRequest
+type UpdateResult CreateResult
+
+func (s trackingService) Update(req UpdateTrackRequest) (success []UpdateResult, error []UpdateResult, err error) {
+	if err = req.Validate(); err != nil {
+		return
+	}
+
+	resp, err := s.httpClient.R().SetBody(req).Put("/modifyinfo")
+	if err != nil {
+		return
+	}
+
+	r := struct {
+		NormalResponse
+		Data struct {
+			Success []UpdateResult `json:"success"`
+			Error   []UpdateResult `json:"error"`
+		} `json:"data"`
+	}{}
+	if err = json.Unmarshal(resp.Body(), &r); err == nil {
+		success = r.Data.Success
+		error = r.Data.Error
 	}
 	return
 }
@@ -244,9 +270,7 @@ func (s trackingService) Delete(req DeleteTrackRequests) (success []DeleteTrackR
 		return
 	}
 
-	resp, err := s.httpClient.R().
-		SetBody(req).
-		Delete("/delete")
+	resp, err := s.httpClient.R().SetBody(req).Delete("/delete")
 	if err != nil {
 		return
 	}
@@ -480,9 +504,7 @@ func (s trackingService) TransitTime(req TransitTimeRequests) (success []Transit
 		return
 	}
 
-	resp, err := s.httpClient.R().
-		SetBody(req).
-		Get("/transittime")
+	resp, err := s.httpClient.R().SetBody(req).Get("/transittime")
 	if err != nil {
 		return
 	}
