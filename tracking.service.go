@@ -49,7 +49,7 @@ func (m CreateTrackRequest) Validate() error {
 		validation.Field(&m.CustomerEmail, validation.When(m.CustomerEmail != "", is.EmailFormat.Error("客户邮箱地址格式错误"))),
 		validation.Field(&m.CustomerPhone, validation.When(m.CustomerPhone != "", validation.Match(regexp.MustCompile(`^+\d{2}\d{11}$`)).Error("客户手机号码格式错误"))),
 		validation.Field(&m.ShippingDate, validation.When(m.ShippingDate != "", validation.Date("2006-01-02 15:04").Error("包裹发货时间格式错误"))),
-		validation.Field(&m.TrackingShippingDate, validation.When(m.TrackingShippingDate != "", validation.Date("20060102").Error("包裹发货时间格式错误"))),
+		validation.Field(&m.TrackingShippingDate, validation.When(m.TrackingShippingDate != "", validation.Date("20060102").Error("跟踪包裹发货时间格式错误"))),
 	)
 }
 
@@ -184,6 +184,7 @@ func (m TracksQueryParams) Validate() error {
 		}))),
 		validation.Field(&m.DeliveryStatus, validation.When(m.DeliveryStatus != "", validation.In(StatusPending, StatusNotFound, StatusTransit, StatusPickup, StatusDelivered, StatusExpired, StatusUndelivered, StatusException, StatusInfoReceived).Error("无效的发货状态"))),
 		validation.Field(&m.ArchivedStatus, validation.When(m.ArchivedStatus != "", validation.In("true", "false").Error("无效的归档状态"))),
+		validation.Field(&m.Lang, validation.When(m.Lang != "", validation.In("cn", "en").Error("无效的查询结果语言"))),
 	)
 }
 
@@ -422,9 +423,7 @@ func (s trackingService) StatusStatistic(req StatusStatisticRequest) (stat Statu
 		return
 	}
 
-	resp, err := s.httpClient.R().
-		SetBody(req).
-		Get("/status")
+	resp, err := s.httpClient.R().SetBody(req).Get("/status")
 	if err != nil {
 		return
 	}
