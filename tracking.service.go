@@ -254,8 +254,8 @@ func (s trackingService) Delete(req DeleteTrackRequests) (success []DeleteTrackR
 	res := struct {
 		NormalResponse
 		Data struct {
-			Success []DeleteTrackResult
-			Error   []DeleteTrackResult
+			Success []DeleteTrackResult `json:"success"`
+			Error   []DeleteTrackResult `json:"error"`
 		} `json:"data"`
 	}{}
 	if err = json.Unmarshal(resp.Body(), &res); err == nil {
@@ -307,8 +307,8 @@ func (s trackingService) StopUpdate(req StopUpdateTrackRequests) (success []Stop
 	res := struct {
 		NormalResponse
 		Data struct {
-			Success []StopUpdateResultSuccess
-			Error   []StopUpdateResultError
+			Success []StopUpdateResultSuccess `json:"success"`
+			Error   []StopUpdateResultError   `json:"error"`
 		} `json:"data"`
 	}{}
 	if err = json.Unmarshal(resp.Body(), &res); err == nil {
@@ -375,8 +375,8 @@ func (s trackingService) Refresh(req RefreshTrackRequests) (success []RefreshRes
 	res := struct {
 		NormalResponse
 		Data struct {
-			Success []RefreshResultSuccess
-			Error   []RefreshResultError
+			Success []RefreshResultSuccess `json:"success"`
+			Error   []RefreshResultError   `json:"error"`
 		} `json:"data"`
 	}{}
 	if err = json.Unmarshal(resp.Body(), &res); err == nil {
