@@ -3,12 +3,26 @@ package tracking51
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"regexp"
+	"strings"
 )
 
 type trackingService service
+
+const (
+	StatusPending      = "pending"      // 查询中
+	StatusNotFound     = "notfound"     // 查询不到
+	StatusTransit      = "transit"      // 运输中
+	StatusPickup       = "pickup"       // 到达待取
+	StatusDelivered    = "delivered"    // 成功签收
+	StatusExpired      = "notfound"     // 运输过久
+	StatusUndelivered  = "undelivered"  // 投递失败
+	StatusException    = "exception"    // 可能异常
+	StatusInfoReceived = "inforeceived" // 待上网
+)
 
 type CreateTrackRequest struct {
 	TrackingNumber          string `json:"tracking_number"`                     // 包裹物流单号
@@ -73,6 +87,7 @@ func (s trackingService) Create(req CreateTrackRequest) (res CreateResult, err e
 }
 
 // 获取查询结果
+// https://www.51tracking.com/v3/api-index?language=Golang#%E8%8E%B7%E5%8F%96%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C
 
 type Track struct {
 	TrackingNumber     string          `json:"tracking_number"`     // 包裹物流单号
@@ -132,8 +147,8 @@ type TrackInfo struct {
 type TracksQueryParams struct {
 	TrackingNumbers string `url:"tracking_numbers,omitempty"`  // 查询单号，每次不得超过40个，单号间以逗号分隔
 	OrderNumbers    string `url:"order_numbers,omitempty"`     // 订单号，每次查询不得超过40个，订单号间以逗号分隔
-	DeliveryStatus  string `url:"delivery_status,omitempty"`   // 状态
-	ArchivedStatus  string `url:"archived_status,omitempty"`   // 指定该单号是否被归档
+	DeliveryStatus  string `url:"delivery_status,omitempty"`   // 发货状态
+	ArchivedStatus  string `url:"archived_status,omitempty"`   // 指定该单号是否被归档。如果参数为字符串“true”，该单号将处于“归档”状态；如果参数为“false”，该单号处于“未归档”状态
 	ItemsAmount     int    `url:"items_amount,omitempty"`      // 每页展示的单号个数
 	PagesAmount     int    `url:"pages_amount,omitempty"`      // 返回结果的页数
 	CreatedDateMin  int    `url:"created_date_min,omitempty"`  // 创建查询的起始时间，时间戳格式
@@ -146,7 +161,30 @@ type TracksQueryParams struct {
 }
 
 func (m TracksQueryParams) Validate() error {
-	return nil
+	return validation.ValidateStruct(&m,
+		validation.Field(&m.TrackingNumbers, validation.When(m.TrackingNumbers != "", validation.By(func(value interface{}) error {
+			numbers, ok := value.(string)
+			if !ok {
+				return fmt.Errorf("无效的查询单号：%s", m.TrackingNumbers)
+			}
+			if len(strings.Split(numbers, ",")) > 40 {
+				return errors.New("查询单号不能超过 40 个")
+			}
+			return nil
+		}))),
+		validation.Field(&m.OrderNumbers, validation.When(m.OrderNumbers != "", validation.By(func(value interface{}) error {
+			numbers, ok := value.(string)
+			if !ok {
+				return fmt.Errorf("无效的订单号：%s", m.OrderNumbers)
+			}
+			if len(strings.Split(numbers, ",")) > 40 {
+				return errors.New("订单号不能超过 40 个")
+			}
+			return nil
+		}))),
+		validation.Field(&m.DeliveryStatus, validation.When(m.DeliveryStatus != "", validation.In(StatusPending, StatusNotFound, StatusTransit, StatusPickup, StatusDelivered, StatusExpired, StatusUndelivered, StatusException, StatusInfoReceived).Error("无效的发货状态"))),
+		validation.Field(&m.ArchivedStatus, validation.When(m.ArchivedStatus != "", validation.In("true", "false").Error("无效的归档状态"))),
+	)
 }
 
 func (s trackingService) Query(params TracksQueryParams) (items []Track, isLastPage bool, err error) {
@@ -181,15 +219,38 @@ type trackingNumberCourierCode struct {
 
 type DeleteTrackRequest trackingNumberCourierCode
 
-type DeleteTrackResult trackingNumberCourierCode
+type DeleteTrackRequests []DeleteTrackRequest
 
-func (m DeleteTrackRequest) Validate() error {
-	return nil
+func (m DeleteTrackRequests) Validate() error {
+	n := len(m)
+	if n == 0 {
+		return errors.New("请求数据不能为空")
+	} else if n > 40 {
+		return errors.New("请求数据不能超过 40 个")
+	}
+
+	var err error
+	for _, request := range m {
+		err = validation.ValidateStruct(&request,
+			validation.Field(&request.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
+			validation.Field(&request.CourierCode, validation.Required.Error("物流商简码不能为空")),
+		)
+		if err != nil {
+			break
+		}
+	}
+	return err
 }
 
-func (s trackingService) Delete(requests []DeleteTrackRequest) (success []DeleteTrackResult, error []DeleteTrackResult, err error) {
+type DeleteTrackResult trackingNumberCourierCode
+
+func (s trackingService) Delete(req DeleteTrackRequests) (success []DeleteTrackResult, error []DeleteTrackResult, err error) {
+	if err = req.Validate(); err != nil {
+		return
+	}
+
 	resp, err := s.httpClient.R().
-		SetBody(requests).
+		SetBody(req).
 		Delete("/delete")
 	if err != nil {
 		return
