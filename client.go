@@ -124,7 +124,7 @@ func NewTracking51(config config.Config) *Tracking51 {
 			if d.Milliseconds() < config.IntervalTime {
 				d = time.Duration(config.IntervalTime-d.Milliseconds()) * time.Millisecond
 				if config.Debug {
-					logger.Printf("Sleep %f milliseconds", d.Milliseconds())
+					logger.Printf("Sleep %d milliseconds", d.Milliseconds())
 				}
 				time.Sleep(d)
 			}

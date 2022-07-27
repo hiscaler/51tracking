@@ -70,7 +70,7 @@ client.Services.Tracking.Create()
 
 ```go
 params := TracksQueryParams{}
-client.Services.Tracking.All(params)
+client.Services.Tracking.Query(params)
 ```
 
 - 删除查询单号

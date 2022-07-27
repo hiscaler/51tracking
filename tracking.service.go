@@ -10,7 +10,7 @@ import (
 
 type trackingService service
 
-type CreateTrackingRequest struct {
+type CreateTrackRequest struct {
 	TrackingNumber          string `json:"tracking_number"`                     // 包裹物流单号
 	CourierCode             string `json:"courier_code"`                        // 物流商对应的唯一简码
 	OrderNumber             string `json:"order_number,omitempty"`              // 包裹的订单号，由商家/平台所产生的订单编号
@@ -28,7 +28,7 @@ type CreateTrackingRequest struct {
 	TrackingCourierAccount  string `json:"tracking_courier_account,omitempty"`  // 物流商的官方账号，仅有部分的物流商（如 dynamic-logistics）需要这个参数
 }
 
-func (m CreateTrackingRequest) Validate() error {
+func (m CreateTrackRequest) Validate() error {
 	return validation.ValidateStruct(&m,
 		validation.Field(&m.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
 		validation.Field(&m.CourierCode, validation.Required.Error("物流商简码不能为空")),
@@ -50,7 +50,7 @@ type CreateResult struct {
 	Error   []Result `json:"error"`
 }
 
-func (s trackingService) Create(req CreateTrackingRequest) (res CreateResult, err error) {
+func (s trackingService) Create(req CreateTrackRequest) (res CreateResult, err error) {
 	if err = req.Validate(); err != nil {
 		return
 	}
@@ -117,7 +117,7 @@ type TrackOriginInfo struct {
 	Weight                 string      `json:"weight"`                   // 该货物的重量（多个包裹会被打包成一个“货物”）
 	DestinationInfo        string      `json:"destination_info"`         // 目的国的物流信息
 	LatestEvent            string      `json:"latest_event"`             // 最新物流信息的梗概，包括以下信息：状态、地址、时间
-	LastestCheckpointTime  string      `json:"lastest_checkpoint_time"`  // 最新物流信息的更新时间
+	LatestCheckpointTime   string      `json:"lastest_checkpoint_time"`  // 最新物流信息的更新时间
 }
 
 // TrackInfo 详细物流信息
@@ -149,7 +149,7 @@ func (m TracksQueryParams) Validate() error {
 	return nil
 }
 
-func (s trackingService) All(params TracksQueryParams) (items []Track, isLastPage bool, err error) {
+func (s trackingService) Query(params TracksQueryParams) (items []Track, isLastPage bool, err error) {
 	if err = params.Validate(); err != nil {
 		return
 	}
@@ -211,14 +211,14 @@ func (s trackingService) Delete(requests []DeleteTrackRequest) (success []Delete
 
 // 停止更新
 
-type StopUpdateRequest trackingNumberCourierCode
-type StopUpdateRequests []StopUpdateRequest
+type StopUpdateTrackRequest trackingNumberCourierCode
+type StopUpdateTrackRequests []StopUpdateTrackRequest
 
-func (m StopUpdateRequests) Validate() error {
+func (m StopUpdateTrackRequests) Validate() error {
 	return validation.Validate(m,
 		validation.Required.Error("请求数据不能为空"),
 		validation.By(func(value interface{}) error {
-			items, ok := value.([]StopUpdateRequest)
+			items, ok := value.([]StopUpdateTrackRequest)
 			if !ok {
 				return errors.New("无效的请求数据")
 			}
@@ -242,7 +242,7 @@ func (m StopUpdateRequests) Validate() error {
 type StopUpdateResultSuccess trackingNumberCourierCode
 type StopUpdateResultError trackingNumberCourierCode
 
-func (s trackingService) StopUpdate(req StopUpdateRequests) (success []StopUpdateResultSuccess, error []StopUpdateResultError, err error) {
+func (s trackingService) StopUpdate(req StopUpdateTrackRequests) (success []StopUpdateResultSuccess, error []StopUpdateResultError, err error) {
 	if err = req.Validate(); err != nil {
 		return
 	}
@@ -268,14 +268,14 @@ func (s trackingService) StopUpdate(req StopUpdateRequests) (success []StopUpdat
 
 // 手动更新
 
-type RefreshRequest trackingNumberCourierCode
-type RefreshRequests []RefreshRequest
+type RefreshTrackRequest trackingNumberCourierCode
+type RefreshTrackRequests []RefreshTrackRequest
 
-func (m RefreshRequests) Validate() error {
+func (m RefreshTrackRequests) Validate() error {
 	return validation.Validate(m,
 		validation.Required.Error("请求数据不能为空"),
 		validation.By(func(value interface{}) error {
-			items, ok := value.([]RefreshRequest)
+			items, ok := value.([]RefreshTrackRequest)
 			if !ok {
 				return errors.New("无效的请求数据")
 			}
@@ -306,8 +306,8 @@ type RefreshResultError struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
-func (s trackingService) Refresh(req RefreshRequests) (success []RefreshResultSuccess, error []RefreshResultError, err error) {
-	if err := req.Validate(); err != nil {
+func (s trackingService) Refresh(req RefreshTrackRequests) (success []RefreshResultSuccess, error []RefreshResultError, err error) {
+	if err = req.Validate(); err != nil {
 		return
 	}
 
@@ -360,6 +360,7 @@ func (s trackingService) StatusStatistic(req StatusStatisticRequest) (stat Statu
 	if err = req.Validate(); err != nil {
 		return
 	}
+
 	resp, err := s.httpClient.R().
 		SetBody(req).
 		Get("/status")
@@ -428,6 +429,7 @@ func (s trackingService) TransitTime(req TransitTimeRequests) (success []Transit
 	if err = req.Validate(); err != nil {
 		return
 	}
+
 	resp, err := s.httpClient.R().
 		SetBody(req).
 		Get("/transittime")

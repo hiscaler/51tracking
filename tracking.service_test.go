@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestTrackingService_All(t *testing.T) {
-	items, _, err := client.Services.Tracking.All(TracksQueryParams{})
+func TestTrackingService_Query(t *testing.T) {
+	items, _, err := client.Services.Tracking.Query(TracksQueryParams{})
 	if err != nil {
 		t.Error(err)
 	}
