@@ -12,18 +12,6 @@ import (
 
 type trackingService service
 
-const (
-	StatusPending      = "pending"      // 查询中
-	StatusNotFound     = "notfound"     // 查询不到
-	StatusTransit      = "transit"      // 运输中
-	StatusPickup       = "pickup"       // 到达待取
-	StatusDelivered    = "delivered"    // 成功签收
-	StatusExpired      = "notfound"     // 运输过久
-	StatusUndelivered  = "undelivered"  // 投递失败
-	StatusException    = "exception"    // 可能异常
-	StatusInfoReceived = "inforeceived" // 待上网
-)
-
 type CreateTrackRequest struct {
 	TrackingNumber          string `json:"tracking_number"`                     // 包裹物流单号
 	CourierCode             string `json:"courier_code"`                        // 物流商对应的唯一简码
@@ -184,7 +172,7 @@ func (m TracksQueryParams) Validate() error {
 		}))),
 		validation.Field(&m.DeliveryStatus, validation.When(m.DeliveryStatus != "", validation.In(StatusPending, StatusNotFound, StatusTransit, StatusPickup, StatusDelivered, StatusExpired, StatusUndelivered, StatusException, StatusInfoReceived).Error("无效的发货状态"))),
 		validation.Field(&m.ArchivedStatus, validation.When(m.ArchivedStatus != "", validation.In("true", "false").Error("无效的归档状态"))),
-		validation.Field(&m.Lang, validation.When(m.Lang != "", validation.In("cn", "en").Error("无效的查询结果语言"))),
+		validation.Field(&m.Lang, validation.When(m.Lang != "", validation.In(ChineseLanguage, EnglishLanguage).Error("无效的查询结果语言"))),
 	)
 }
 

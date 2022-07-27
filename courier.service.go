@@ -9,7 +9,7 @@ import (
 
 type courierService service
 
-// https://www.51tracking.com/v3/api-index?language=Golang#%E7%89%A9%E6%B5%81%E5%95%86%E5%88%97%E8%A1%A8
+// Courier https://www.51tracking.com/v3/api-index?language=Golang#%E7%89%A9%E6%B5%81%E5%95%86%E5%88%97%E8%A1%A8
 type Courier struct {
 	Name        string      `json:"courier_name"`
 	Code        string      `json:"courier_code"`
@@ -22,8 +22,8 @@ type Courier struct {
 
 // List 物流商列表
 func (s courierService) List(lang string) (items []Courier, err error) {
-	if !inx.StringIn(lang, "cn", "en") {
-		lang = "cn"
+	if !inx.StringIn(lang, ChineseLanguage, EnglishLanguage) {
+		lang = ChineseLanguage
 	}
 
 	res := struct {

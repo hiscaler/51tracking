@@ -36,6 +36,23 @@ const (
 )
 
 const (
+	StatusPending      = "pending"      // 查询中
+	StatusNotFound     = "notfound"     // 查询不到
+	StatusTransit      = "transit"      // 运输中
+	StatusPickup       = "pickup"       // 到达待取
+	StatusDelivered    = "delivered"    // 成功签收
+	StatusExpired      = "notfound"     // 运输过久
+	StatusUndelivered  = "undelivered"  // 投递失败
+	StatusException    = "exception"    // 可能异常
+	StatusInfoReceived = "inforeceived" // 待上网
+)
+
+const (
+	ChineseLanguage = "cn"
+	EnglishLanguage = "en"
+)
+
+const (
 	Version   = "0.0.1"
 	userAgent = "51tracking API Client-Golang/" + Version + " (https://github.com/hiscaler/51tracking-go)"
 )
