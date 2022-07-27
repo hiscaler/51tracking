@@ -41,7 +41,7 @@ const (
 )
 
 type Tracking51 struct {
-	latestRequestTime time.Time
+	latestRequestTime time.Time      // 最后请求时间（在传入了 IntervalTime 后，该值用于控制接口调取频率处理，未传入的话不起作用）
 	config            *config.Config // 配置
 	httpClient        *resty.Client  // Resty Client
 	Services          services       // API Services
@@ -114,9 +114,6 @@ func NewTracking51(config config.Config) *Tracking51 {
 		})
 
 	if config.IntervalTime > 0 {
-		if config.IntervalTime < 1000 {
-			config.IntervalTime = 1000
-		}
 		httpClient.OnBeforeRequest(func(c *resty.Client, request *resty.Request) error {
 			now := time.Now()
 			if config.Debug {
