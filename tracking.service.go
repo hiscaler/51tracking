@@ -333,7 +333,7 @@ func (s trackingService) Refresh(req RefreshRequests) (success []RefreshResultSu
 // 统计包裹状态
 
 type StatusStatisticRequest struct {
-	CourierCode     string `url:"courier_code,omitempty"`      // 	物流商对应的唯一简码
+	CourierCode     string `url:"courier_code,omitempty"`      // 物流商对应的唯一简码
 	CreatedDateMin  int    `url:"created_date_min,omitempty"`  // 创建查询的起始时间，时间戳格式
 	CreatedDateMax  int    `url:"created_date_max,omitempty"`  // 创建查询的结束时间，时间戳格式
 	ShippingDateMin int    `url:"shipping_date_min,omitempty"` // 发货的起始时间，时间戳格式
@@ -400,7 +400,7 @@ type TransitTimeRequest struct {
 
 func (m TransitTimeRequest) Validate() error {
 	return validation.ValidateStruct(&m,
-		validation.Field(&m.CourierCode, validation.Required.Error(" 物流商简码不能为空")),
+		validation.Field(&m.CourierCode, validation.Required.Error("物流商简码不能为空")),
 		validation.Field(&m.OriginalCode, validation.Required.Error("发件国二字简码不能为空")),
 		validation.Field(&m.DestinationCode, validation.Required.Error("目的国二字简码不能为空")),
 	)

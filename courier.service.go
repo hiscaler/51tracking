@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/hiscaler/gox/inx"
 	"gopkg.in/guregu/null.v4"
+	"strings"
 )
 
 type courierService service
@@ -30,7 +31,7 @@ func (s courierService) List(lang string) (items []Courier, err error) {
 		Data []Courier `json:"data"`
 	}{}
 	resp, err := s.httpClient.R().
-		SetQueryParam("lang", lang).
+		SetQueryParam("lang", strings.ToLower(lang)).
 		Get("/courier")
 	if err != nil {
 		return
@@ -42,8 +43,8 @@ func (s courierService) List(lang string) (items []Courier, err error) {
 	return
 }
 
-// Change 修改物流简码
-func (s courierService) Change(trackingNumber, oldCourierCode, newCourierCode string) error {
+// Update 修改物流简码
+func (s courierService) Update(trackingNumber, oldCourierCode, newCourierCode string) error {
 	_, err := s.httpClient.R().
 		SetBody(map[string]string{
 			"tracking_number":  trackingNumber,
