@@ -215,28 +215,24 @@ type StopUpdateTrackRequest trackingNumberCourierCode
 type StopUpdateTrackRequests []StopUpdateTrackRequest
 
 func (m StopUpdateTrackRequests) Validate() error {
-	return validation.Validate(m,
-		validation.Required.Error("请求数据不能为空"),
-		validation.By(func(value interface{}) error {
-			items, ok := value.([]StopUpdateTrackRequest)
-			if !ok {
-				return errors.New("无效的请求数据")
-			}
-			if len(items) > 40 {
-				return errors.New("请求数据不能超过 40 个")
-			}
-			for _, item := range items {
-				err := validation.ValidateStruct(&item,
-					validation.Field(&item.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
-					validation.Field(&item.CourierCode, validation.Required.Error("物流商简码不能为空")),
-				)
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		}),
-	)
+	n := len(m)
+	if n == 0 {
+		return errors.New("请求数据不能为空")
+	} else if n > 40 {
+		return errors.New("请求数据不能超过 40 个")
+	}
+
+	var err error
+	for _, request := range m {
+		err = validation.ValidateStruct(&request,
+			validation.Field(&request.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
+			validation.Field(&request.CourierCode, validation.Required.Error("物流商简码不能为空")),
+		)
+		if err != nil {
+			break
+		}
+	}
+	return err
 }
 
 type StopUpdateResultSuccess trackingNumberCourierCode
@@ -269,31 +265,35 @@ func (s trackingService) StopUpdate(req StopUpdateTrackRequests) (success []Stop
 // 手动更新
 
 type RefreshTrackRequest trackingNumberCourierCode
+
+func (m RefreshTrackRequest) Validate() error {
+	return validation.ValidateStruct(&m,
+		validation.Field(&m.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
+		validation.Field(&m.CourierCode, validation.Required.Error("物流商简码不能为空")),
+	)
+}
+
 type RefreshTrackRequests []RefreshTrackRequest
 
 func (m RefreshTrackRequests) Validate() error {
-	return validation.Validate(m,
-		validation.Required.Error("请求数据不能为空"),
-		validation.By(func(value interface{}) error {
-			items, ok := value.([]RefreshTrackRequest)
-			if !ok {
-				return errors.New("无效的请求数据")
-			}
-			if len(items) > 40 {
-				return errors.New("请求数据不能超过 40 个")
-			}
-			for _, item := range items {
-				err := validation.ValidateStruct(&item,
-					validation.Field(&item.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
-					validation.Field(&item.CourierCode, validation.Required.Error("物流商简码不能为空")),
-				)
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		}),
-	)
+	n := len(m)
+	if n == 0 {
+		return errors.New("请求数据不能为空")
+	} else if n > 40 {
+		return errors.New("请求数据不能超过 40 个")
+	}
+
+	var err error
+	for _, request := range m {
+		err = validation.ValidateStruct(&request,
+			validation.Field(&request.TrackingNumber, validation.Required.Error("包裹物流单号不能为空")),
+			validation.Field(&request.CourierCode, validation.Required.Error("物流商简码不能为空")),
+		)
+		if err != nil {
+			break
+		}
+	}
+	return err
 }
 
 type RefreshResultSuccess struct {
@@ -403,26 +403,22 @@ type TransitTimeRequest struct {
 type TransitTimeRequests []TransitTimeRequest
 
 func (m TransitTimeRequests) Validate() error {
-	return validation.Validate(m,
-		validation.Required.Error("请求数据不能为空"),
-		validation.By(func(value interface{}) error {
-			items, ok := value.([]TransitTimeRequest)
-			if !ok {
-				return errors.New("无效的请求数据")
-			}
-			for _, item := range items {
-				err := validation.ValidateStruct(&m,
-					validation.Field(&item.CourierCode, validation.Required.Error("物流商简码不能为空")),
-					validation.Field(&item.OriginalCode, validation.Required.Error("发件国二字简码不能为空")),
-					validation.Field(&item.DestinationCode, validation.Required.Error("目的国二字简码不能为空")),
-				)
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		}),
-	)
+	if len(m) == 0 {
+		return errors.New("请求数据不能为空")
+	}
+
+	var err error
+	for _, request := range m {
+		err = validation.ValidateStruct(&request,
+			validation.Field(&request.CourierCode, validation.Required.Error("物流商简码不能为空")),
+			validation.Field(&request.OriginalCode, validation.Required.Error("发件国二字简码不能为空")),
+			validation.Field(&request.DestinationCode, validation.Required.Error("目的国二字简码不能为空")),
+		)
+		if err != nil {
+			break
+		}
+	}
+	return err
 }
 
 func (s trackingService) TransitTime(req TransitTimeRequests) (success []TransitTime, error []TransitTime, err error) {
