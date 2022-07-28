@@ -59,7 +59,7 @@ type Config struct {
 
 ## 服务
 
-### 帐号
+### Account
 
 - 帐号情况
 
@@ -67,7 +67,7 @@ type Config struct {
 client.Services.Account.Profile()
 ```
 
-### 物流商
+### Courier
 
 - 获取物流商列表
 
@@ -88,8 +88,6 @@ client.Services.Courier.Change("trackingNumber", "oldCourierCode", "newCourierCo
 ```go
 client.Services.Tracking.Create()
 ```
-
-### Tracking
 
 - 修改单号信息
 
@@ -138,4 +136,19 @@ client.Services.Tracking.TransitTime(TransitTimeRequest{})
 
 ```go
 client.Services.Tracking.RemoteDetection(RemoteDetectionRequest{})
+```
+
+## Webhook
+
+针对 51Tracking 的数据推送，提供了 WebhookRequest 结构体，您可以使用他来接受推送过来的数据，并判断 Code 是否为 200 且 Data.Valid() 是否有效来进行下一步的业务逻辑处理。
+
+Data.Valid(you51TrackingAccountEmail) 用来判断推送的数据是否来自 51Tracking，根据需要，您可以跳过此步。
+
+```go
+var wr WebRequest
+if json.Unmarshal(resp.Body, &wr) != nil {
+	if wr.Code == 200 && wr.Data.Valid(you51TrackingAccountEmail) {
+	    // you code	
+    }
+}
 ```
