@@ -130,7 +130,7 @@ type Track struct {
 	ServiceCode            string          `json:"service_code"`             // 快递服务类型，比如次日达（部分物流商返回）
 	StatusInfo             string          `json:"status_info"`              // 最新的一条物流信息
 	Weight                 string          `json:"weight"`                   // 该货物的重量（多个包裹会被打包成一个“货物”）
-	DestinationInfo        string          `json:"destination_info"`         // 目的国的物流信息
+	DestinationInfo        TrackInfo       `json:"destination_info"`         // 目的国的物流信息
 	LatestEvent            string          `json:"latest_event"`             // 最新物流信息的梗概，包括以下信息：状态、地址、时间
 	LatestCheckpointTime   string          `json:"lastest_checkpoint_time"`  // 最新物流信息的更新时间
 	OriginInfo             TrackOriginInfo `json:"origin_info"`              // 发件国的物流信息
