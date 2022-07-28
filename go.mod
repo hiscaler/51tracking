@@ -13,4 +13,5 @@ require (
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
 	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+	golang.org/x/text v0.3.7 // indirect
 )
