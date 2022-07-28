@@ -7,8 +7,6 @@ https://www.51tracking.com/v3/api-index?language=Golang#api-version
 
 ## 数据更新频率
 
-****
-
 ### 正常
 
 - 添加 30 天内未签收的属于正常更新频次也就是下限是 4 小时上限是 6 小时；
