@@ -127,3 +127,9 @@ client.Services.Tracking.StatusStatistic(StatusStatisticRequest{})
 ```go
 client.Services.Tracking.TransitTime(TransitTimeRequest{})
 ```
+
+- 检测偏远地区
+
+```go
+client.Services.Tracking.RemoteDetection(RemoteDetectionRequest{})
+```

@@ -522,3 +522,43 @@ func (s trackingService) TransitTime(req TransitTimeRequests) (success []Transit
 	}
 	return
 }
+
+// 检测偏远地区
+
+type RemoteDetectionRequest struct {
+	PostalCode  string `json:"postal_code"`            // 该偏远地区所对应的邮编
+	Country     string `json:"country,omitempty"`      // 城市名称或者国家二字简码
+	CourierCode string `json:"courier_code,omitempty"` // 物流商简码
+}
+
+func (m RemoteDetectionRequest) Validate() error {
+	return validation.ValidateStruct(&m,
+		validation.Field(&m.PostalCode, validation.Required.Error("偏远地区邮编不能为空")),
+	)
+}
+
+type RemoteDetectionResult struct {
+	PostalCode        string   `json:"postal_code"`         // 该偏远地区所对应的邮编
+	CountryCode       string   `json:"country"`             // 该偏远地区所对应的国家名称
+	RemoteCourierCode []string `json:"remote_courier_code"` // 支持该偏远地区的物流商。51tracking 目前仅支持DHL, UPS, Fedex, TNT四家物流商的偏远地区查询
+}
+
+func (s trackingService) RemoteDetection(req RemoteDetectionRequest) (item RemoteDetectionResult, err error) {
+	if err = req.Validate(); err != nil {
+		return
+	}
+
+	resp, err := s.httpClient.R().SetBody(req).Get("/transittime")
+	if err != nil {
+		return
+	}
+
+	res := struct {
+		NormalResponse
+		Data RemoteDetectionResult `json:"data"`
+	}{}
+	if err = json.Unmarshal(resp.Body(), &res); err == nil {
+		item = res.Data
+	}
+	return
+}
