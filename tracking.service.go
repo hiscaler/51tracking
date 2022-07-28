@@ -8,6 +8,7 @@ import (
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type trackingService service
@@ -166,13 +167,25 @@ type TracksQueryParams struct {
 	ArchivedStatus  string `url:"archived_status,omitempty"`   // 指定该单号是否被归档。如果参数为字符串“true”，该单号将处于“归档”状态；如果参数为“false”，该单号处于“未归档”状态
 	ItemsAmount     int    `url:"items_amount,omitempty"`      // 每页展示的单号个数
 	PagesAmount     int    `url:"pages_amount,omitempty"`      // 返回结果的页数
-	CreatedDateMin  int    `url:"created_date_min,omitempty"`  // 创建查询的起始时间，时间戳格式
-	CreatedDateMax  int    `url:"created_date_max,omitempty"`  // 创建查询的结束时间，时间戳格式
-	ShippingDateMin int    `url:"shipping_date_min,omitempty"` // 发货的起始时间，时间戳格式
-	ShippingDateMax int    `url:"shipping_date_max,omitempty"` // 发货的结束时间，时间戳格式
-	UpdatedDateMin  int    `url:"updated_date_min,omitempty"`  // 查询更新的起始时间，时间戳格式
-	UpdatedDateMax  int    `url:"updated_date_max,omitempty"`  // 查询更新的结束时间，时间戳格式
+	CreatedDateMin  int64  `url:"created_date_min,omitempty"`  // 创建查询的起始时间（时间戳格式）
+	CreatedDateMax  int64  `url:"created_date_max,omitempty"`  // 创建查询的结束时间（时间戳格式）
+	ShippingDateMin int64  `url:"shipping_date_min,omitempty"` // 发货的起始时间（时间戳格式）
+	ShippingDateMax int64  `url:"shipping_date_max,omitempty"` // 发货的结束时间（时间戳格式）
+	UpdatedDateMin  int64  `url:"updated_date_min,omitempty"`  // 查询更新的起始时间（时间戳格式）
+	UpdatedDateMax  int64  `url:"updated_date_max,omitempty"`  // 查询更新的结束时间（时间戳格式）
 	Lang            string `url:"lang,omitempty"`              // 查询结果的语言（例子：cn, en），若未指定该参数，结果会以英文或中文呈现。 注意：只有物流商支持多语言查询结果时，该指定才会生效
+}
+
+// 验证是否为有效的时间戳
+func checkUnixTime(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	v, ok := value.(int64)
+	if !ok || time.Unix(v, 0).IsZero() {
+		return errors.New("无效的时间戳值")
+	}
+	return nil
 }
 
 func (m TracksQueryParams) Validate() error {
@@ -199,6 +212,33 @@ func (m TracksQueryParams) Validate() error {
 		}))),
 		validation.Field(&m.DeliveryStatus, validation.When(m.DeliveryStatus != "", validation.In(StatusPending, StatusNotFound, StatusTransit, StatusPickup, StatusDelivered, StatusExpired, StatusUndelivered, StatusException, StatusInfoReceived).Error("无效的发货状态"))),
 		validation.Field(&m.ArchivedStatus, validation.When(m.ArchivedStatus != "", validation.In("true", "false").Error("无效的归档状态"))),
+		validation.Field(&m.CreatedDateMin, validation.When(m.CreatedDateMin != 0, validation.By(checkUnixTime))),
+		validation.Field(&m.CreatedDateMin, validation.When(m.CreatedDateMax != 0, validation.Required.Error("创建查询开始时间不能为空"))),
+		validation.Field(&m.CreatedDateMax,
+			validation.When(m.CreatedDateMax != 0, validation.By(checkUnixTime)),
+			validation.When(m.CreatedDateMin != 0,
+				validation.Required.Error("创建查询结束时间不能为空"),
+				validation.Min(m.CreatedDateMin).Error("创建查询结束时间不能小于开始时间"),
+			),
+		),
+		validation.Field(&m.ShippingDateMin, validation.When(m.ShippingDateMin != 0, validation.By(checkUnixTime))),
+		validation.Field(&m.ShippingDateMin, validation.When(m.ShippingDateMax != 0, validation.Required.Error("发货开始时间不能为空"))),
+		validation.Field(&m.ShippingDateMax,
+			validation.When(m.ShippingDateMax != 0, validation.By(checkUnixTime)),
+			validation.When(m.ShippingDateMin != 0,
+				validation.Required.Error("发货结束时间不能为空"),
+				validation.Min(m.ShippingDateMin).Error("发货结束时间不能小于开始时间"),
+			),
+		),
+		validation.Field(&m.UpdatedDateMin, validation.When(m.UpdatedDateMin != 0, validation.By(checkUnixTime))),
+		validation.Field(&m.UpdatedDateMin, validation.When(m.UpdatedDateMax != 0, validation.Required.Error("查询更新开始时间不能为空"))),
+		validation.Field(&m.UpdatedDateMax,
+			validation.When(m.UpdatedDateMax != 0, validation.By(checkUnixTime)),
+			validation.When(m.UpdatedDateMin != 0,
+				validation.Required.Error("查询更新结束时间不能为空"),
+				validation.Min(m.UpdatedDateMin).Error("查询更新结束时间不能小于开始时间"),
+			),
+		),
 		validation.Field(&m.Lang, validation.When(m.Lang != "", validation.In(ChineseLanguage, EnglishLanguage).Error("无效的查询结果语言"))),
 	)
 }
