@@ -67,8 +67,7 @@ type Tracking51 struct {
 func NewTracking51(config config.Config) *Tracking51 {
 	logger := log.New(os.Stdout, "[ 51Tracking ] ", log.LstdFlags|log.Llongfile)
 	client := &Tracking51{
-		config:            &config,
-		latestRequestTime: time.Now(),
+		config: &config,
 	}
 
 	baseURL := "https://api.51tracking.com/v3/trackings"
@@ -133,6 +132,11 @@ func NewTracking51(config config.Config) *Tracking51 {
 	if config.IntervalTime > 0 {
 		httpClient.OnBeforeRequest(func(c *resty.Client, request *resty.Request) error {
 			now := time.Now()
+			if client.latestRequestTime.IsZero() {
+				client.latestRequestTime = now
+				return nil
+			}
+
 			if config.Debug {
 				logger.Printf("URL: %s", request.URL)
 				logger.Printf("Client latest request time: %s, Current request time: %s", client.latestRequestTime.Format("2006-01-02 15:04:05.000"), now.Format("2006-01-02 15:04:05.000"))
