@@ -190,7 +190,7 @@ func ErrorWrap(code int, message string) error {
 	case PaymentRequiredError:
 		message = "API 服务只提供给付费账户，请付费购买单号以解锁 API 服务"
 	case BadRequestError:
-		message = " 请求类型错误"
+		message = "请求类型错误"
 	case UnauthorizedError:
 		message = "授权失败或没有权限，请检查并确保你 API Key 正确无误"
 	case NotFoundError:
