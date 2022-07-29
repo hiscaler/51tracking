@@ -138,8 +138,8 @@ func NewTracking51(config config.Config) *Tracking51 {
 			}
 
 			if config.Debug {
-				logger.Printf("URL: %s", request.URL)
-				logger.Printf("Client latest request time: %s, Current request time: %s", client.latestRequestTime.Format("2006-01-02 15:04:05.000"), now.Format("2006-01-02 15:04:05.000"))
+				logger.Printf("Request URL: %s", request.URL)
+				logger.Printf("Request latest request time: %s, Current request time: %s", client.latestRequestTime.Format("2006-01-02 15:04:05.000"), now.Format("2006-01-02 15:04:05.000"))
 			}
 			d := now.Sub(client.latestRequestTime)
 			if d.Milliseconds() < config.IntervalTime {
