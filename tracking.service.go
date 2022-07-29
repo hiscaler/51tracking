@@ -528,7 +528,7 @@ type TransitTime struct {
 	Range8To15          float64 `json:"range_8_15"`            // 送达时间为7～15天的单号的占比
 	Range16To30         float64 `json:"range_16_30"`           // 送达时间为16～30天的单号的占比
 	Range31To60         float64 `json:"range_31_60"`           // 送达时间为31～60天的单号的占比
-	Range60Up           float64 `json:"range_60_up"`           // 送达时间为31～60天的单号的占比
+	Range60Up           float64 `json:"range_60_up"`           // 送达时间大于60天的单号的占比
 	AverageDeliveryTime float64 `json:"average_delivery_time"` // 平均送达时间（单位：天）
 }
 
