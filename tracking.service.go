@@ -455,10 +455,10 @@ func (s trackingService) Refresh(req RefreshTrackRequests) (success []RefreshRes
 
 type StatusStatisticRequest struct {
 	CourierCode     string `url:"courier_code,omitempty"`      // 物流商对应的唯一简码
-	CreatedDateMin  int    `url:"created_date_min,omitempty"`  // 创建查询的起始时间，时间戳格式
-	CreatedDateMax  int    `url:"created_date_max,omitempty"`  // 创建查询的结束时间，时间戳格式
-	ShippingDateMin int    `url:"shipping_date_min,omitempty"` // 发货的起始时间，时间戳格式
-	ShippingDateMax int    `url:"shipping_date_max,omitempty"` // 发货的结束时间，时间戳格式
+	CreatedDateMin  int64  `url:"created_date_min,omitempty"`  // 创建查询的起始时间（时间戳格式）
+	CreatedDateMax  int64  `url:"created_date_max,omitempty"`  // 创建查询的结束时间（时间戳格式）
+	ShippingDateMin int64  `url:"shipping_date_min,omitempty"` // 发货的起始时间（时间戳格式）
+	ShippingDateMax int64  `url:"shipping_date_max,omitempty"` // 发货的结束时间（时间戳格式）
 }
 
 type StatusStatistic struct {
@@ -474,7 +474,26 @@ type StatusStatistic struct {
 }
 
 func (m StatusStatisticRequest) Validate() error {
-	return nil
+	return validation.ValidateStruct(&m,
+		validation.Field(&m.CreatedDateMin, validation.When(m.CreatedDateMin != 0, validation.By(checkUnixTime))),
+		validation.Field(&m.CreatedDateMin, validation.When(m.CreatedDateMax != 0, validation.Required.Error("创建查询开始时间不能为空"))),
+		validation.Field(&m.CreatedDateMax,
+			validation.When(m.CreatedDateMax != 0, validation.By(checkUnixTime)),
+			validation.When(m.CreatedDateMin != 0,
+				validation.Required.Error("创建查询结束时间不能为空"),
+				validation.Min(m.CreatedDateMin).Error("创建查询结束时间不能小于开始时间"),
+			),
+		),
+		validation.Field(&m.ShippingDateMin, validation.When(m.ShippingDateMin != 0, validation.By(checkUnixTime))),
+		validation.Field(&m.ShippingDateMin, validation.When(m.ShippingDateMax != 0, validation.Required.Error("发货开始时间不能为空"))),
+		validation.Field(&m.ShippingDateMax,
+			validation.When(m.ShippingDateMax != 0, validation.By(checkUnixTime)),
+			validation.When(m.ShippingDateMin != 0,
+				validation.Required.Error("发货结束时间不能为空"),
+				validation.Min(m.ShippingDateMin).Error("发货结束时间不能小于开始时间"),
+			),
+		),
+	)
 }
 
 func (s trackingService) StatusStatistic(req StatusStatisticRequest) (stat StatusStatistic, err error) {
